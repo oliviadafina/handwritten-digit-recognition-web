@@ -5,8 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>CNN 3D Visualizer — Handwritten Digit Recognition</title>
   <meta name="description" content="Visualisasi interaktif 3D arsitektur CNN LeNet untuk pengenalan angka tulisan tangan.">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230a0a0f'/><text x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='20' font-weight='700' fill='%2300d4ff'>7</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 
   <!-- Three.js dari CDN -->
@@ -29,17 +30,23 @@
       <h2>Gambar Angka</h2>
       <div id="canvas-wrapper">
         <canvas id="draw-canvas" width="280" height="280"></canvas>
-        <div id="canvas-hint">Gambar angka 0–9 di sini</div>
+        <div id="canvas-hint">Gambar angka 0-9 di sini</div>
       </div>
-      <button id="clear-btn">🗑 Clear</button>
-      <div id="backend-status">⏳ Menghubungkan ke backend...</div>
+      <button id="clear-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+        Hapus
+      </button>
+      <div id="backend-status">
+        <span class="status-dot"></span>
+        <span class="status-text">Menghubungkan ke backend...</span>
+      </div>
     </section>
 
     <!-- PANEL TENGAH: 3D Visualizer -->
     <section id="viz-panel">
       <h2>Arsitektur CNN 3D</h2>
       <canvas id="three-canvas"></canvas>
-      <p id="viz-hint">🖱 Drag untuk rotasi · Scroll untuk zoom</p>
+      <p id="viz-hint">Drag untuk rotasi · Scroll untuk zoom</p>
     </section>
 
     <!-- PANEL KANAN: Prediksi -->
@@ -54,6 +61,9 @@
     </section>
 
   </main>
+
+  <!-- Grain overlay for texture -->
+  <div id="grain-overlay" aria-hidden="true"></div>
 
   <!-- Load JS terakhir (setelah DOM siap) -->
   <script src="cnn3d.js"></script>

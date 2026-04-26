@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- Event Mouse ---
   canvas.addEventListener('mousedown', (e) => {
     isDrawing = true;
+    document.getElementById('canvas-wrapper').classList.add('is-drawing');
     const pos = getPos(canvas, e);
     ctx.beginPath();
     ctx.moveTo(pos.x, pos.y);
@@ -46,17 +47,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
   canvas.addEventListener('mouseup', () => {
     isDrawing = false;
+    document.getElementById('canvas-wrapper').classList.remove('is-drawing');
     sendToBackend(canvas);
   });
 
   canvas.addEventListener('mouseleave', () => {
     isDrawing = false;
+    document.getElementById('canvas-wrapper').classList.remove('is-drawing');
   });
 
   // --- Event Touch (tablet/mobile) ---
   canvas.addEventListener('touchstart', (e) => {
     e.preventDefault();
     isDrawing = true;
+    document.getElementById('canvas-wrapper').classList.add('is-drawing');
     const pos = getTouchPos(canvas, e);
     ctx.beginPath();
     ctx.moveTo(pos.x, pos.y);
@@ -79,18 +83,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
   canvas.addEventListener('touchend', () => {
     isDrawing = false;
+    document.getElementById('canvas-wrapper').classList.remove('is-drawing');
   });
 
   // --- Tombol Clear ---
   document.getElementById('clear-btn').addEventListener('click', () => {
     resetCanvas(ctx, canvas);
     document.getElementById('predicted-digit').textContent = '?';
+    document.getElementById('predicted-digit').style.color = '';
     document.getElementById('confidence-bars').innerHTML =
       '<p id="conf-placeholder">Gambar angka untuk melihat prediksi</p>';
   });
 
   // --- Cek koneksi backend saat startup ---
   checkBackend();
+
+  // --- Trigger entrance animations ---
+  document.querySelectorAll('#draw-panel, #viz-panel, #predict-panel').forEach((el, i) => {
+    el.style.setProperty('--entrance-delay', `${i * 120}ms`);
+    el.classList.add('panel-enter');
+  });
 });
 
 // ========================================
@@ -98,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // ========================================
 
 function resetCanvas(ctx, canvas) {
-  ctx.fillStyle = '#000';
+  ctx.fillStyle = '#0a0a0f';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
@@ -124,10 +136,10 @@ async function checkBackend() {
   try {
     const res = await fetch(`${BACKEND_URL}/`);
     const data = await res.json();
-    statusEl.textContent = '✅ Backend terhubung';
+    statusEl.querySelector('.status-text').textContent = 'Backend terhubung';
     statusEl.className = 'ok';
   } catch {
-    statusEl.textContent = '❌ Backend tidak terhubung! Jalankan python app.py';
+    statusEl.querySelector('.status-text').textContent = 'Backend tidak terhubung';
     statusEl.className = 'error';
   }
 }
@@ -193,6 +205,11 @@ function updatePredictionPanel(data) {
   // Tampilkan angka prediksi besar
   document.getElementById('predicted-digit').textContent = data.prediction;
 
+  // Color the digit based on confidence
+  const maxConf = Math.max(...data.confidence);
+  const digitEl = document.getElementById('predicted-digit');
+  digitEl.style.color = maxConf > 0.8 ? 'var(--amber)' : 'var(--accent)';
+
   // Buat confidence bar untuk tiap angka 0-9
   const barsEl = document.getElementById('confidence-bars');
   barsEl.innerHTML = '';
@@ -203,6 +220,7 @@ function updatePredictionPanel(data) {
 
     const row = document.createElement('div');
     row.className = 'conf-row' + (isMax ? ' conf-max' : '');
+    row.style.setProperty('--i', i);
 
     row.innerHTML = `
       <span class="conf-label">${i}</span>
