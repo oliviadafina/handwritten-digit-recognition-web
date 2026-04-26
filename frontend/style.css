@@ -1,0 +1,279 @@
+/* ========================================
+   CNN 3D Visualizer — style.css
+   Navy + White — High Contrast
+   Dark center, light side panels
+   ======================================== */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --navy:      #01162b;
+  --navy-mid:  #00385a;
+  --blue-mid:  #6a90b4;
+  --blue-light:#94a2bf;
+  --snow:      #d2dbeb;
+  --white:     #ffffff;
+  --panel-bg:  #f4f7fb;   /* Panel kiri & kanan: putih kebiruan */
+  --border:    #d2dbeb;
+  --border-dk: rgba(0,56,90,0.2);
+  --text-dark: #01162b;
+  --text-mid:  #00385a;
+  --text-muted:#6a90b4;
+  --radius:    10px;
+  --font-main: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+html, body {
+  height: 100%;
+  background: var(--navy);
+  color: var(--text-dark);
+  font-family: var(--font-main);
+  overflow: hidden;
+}
+
+/* ─── Header: Navy gelap, teks putih ─── */
+#app-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 13px 26px;
+  background: var(--navy);
+  border-bottom: 1px solid rgba(210,219,235,0.15);
+}
+
+#app-header h1 {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--white);
+}
+
+#app-header h1 .accent { color: var(--snow); font-weight: 300; }
+
+#app-header .subtitle {
+  font-size: 0.7rem;
+  color: var(--blue-light);
+  font-family: var(--font-mono);
+  letter-spacing: 0.1em;
+}
+
+/* ─── Main Layout ─── */
+#app-main {
+  display: grid;
+  grid-template-columns: 292px 1fr 252px;
+  height: calc(100vh - 50px);
+}
+
+/* ─── Panels ─── */
+#draw-panel, #viz-panel, #predict-panel {
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: hidden;
+}
+
+/* Panel kiri & kanan: PUTIH */
+#draw-panel, #predict-panel {
+  background: var(--panel-bg);
+}
+
+/* Panel tengah: NAVY GELAP */
+#viz-panel { background: var(--navy); }
+
+#draw-panel    { border-right: 1px solid var(--border); }
+#predict-panel { border-left:  1px solid var(--border); }
+
+/* ─── Section headings ─── */
+#draw-panel h2, #predict-panel h2 {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+#viz-panel h2 {
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(210,219,235,0.5);
+}
+
+/* ─── Draw Panel ─── */
+#canvas-wrapper {
+  position: relative;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 2px solid var(--border);
+  flex-shrink: 0;
+  box-shadow: 0 2px 12px rgba(1,22,43,0.1);
+}
+
+#draw-canvas {
+  display: block;
+  width: 256px;
+  height: 256px;
+  cursor: crosshair;
+  background: #000;
+}
+
+#canvas-hint {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.62rem;
+  color: rgba(255,255,255,0.2);
+  pointer-events: none;
+  font-family: var(--font-mono);
+  white-space: nowrap;
+}
+
+#clear-btn {
+  width: 100%;
+  padding: 9px;
+  background: var(--white);
+  color: var(--text-mid);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-family: var(--font-main);
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+#clear-btn:hover {
+  background: var(--navy-mid);
+  color: var(--white);
+  border-color: var(--navy-mid);
+}
+
+#backend-status {
+  font-size: 0.66rem;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  text-align: center;
+  padding: 6px;
+  border-radius: 6px;
+  background: var(--white);
+  border: 1px solid var(--border);
+}
+
+#backend-status.ok    { color: #2d7a4f; background: #edfaf3; border-color: #b0dfc5; }
+#backend-status.error { color: #a03030; background: #fff0f0; border-color: #f0b0b0; }
+
+/* ─── Viz Panel ─── */
+#three-canvas {
+  flex: 1;
+  width: 100%;
+  border-radius: var(--radius);
+  border: 1px solid rgba(210,219,235,0.15);
+  display: block;
+}
+
+#viz-hint {
+  font-size: 0.62rem;
+  color: rgba(210,219,235,0.4);
+  text-align: center;
+  font-family: var(--font-mono);
+}
+
+/* ─── Predict Panel ─── */
+#predicted-digit {
+  font-size: 5.5rem;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1;
+  color: var(--navy);
+  font-family: var(--font-mono);
+  padding: 18px 0;
+  border-radius: var(--radius);
+  background: var(--white);
+  border: 2px solid var(--border);
+  flex-shrink: 0;
+  box-shadow: 0 2px 12px rgba(1,22,43,0.08);
+  transition: color 0.2s;
+}
+
+#confidence-title {
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+#confidence-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+#conf-placeholder {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-align: center;
+  padding-top: 20px;
+  font-style: italic;
+}
+
+/* ─── Confidence Rows ─── */
+.conf-row {
+  display: grid;
+  grid-template-columns: 16px 1fr 44px;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+
+.conf-row.conf-max {
+  background: rgba(0,56,90,0.06);
+}
+
+.conf-label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.conf-row.conf-max .conf-label { color: var(--navy); }
+
+.conf-bar-bg {
+  background: var(--border);
+  border-radius: 3px;
+  height: 7px;
+  overflow: hidden;
+}
+
+.conf-bar {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--blue-light);
+  transition: width 0.25s ease;
+}
+
+.conf-row.conf-max .conf-bar { background: var(--navy-mid); }
+
+.conf-pct {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  text-align: right;
+}
+
+.conf-row.conf-max .conf-pct { color: var(--navy); font-weight: 600; }
+
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }

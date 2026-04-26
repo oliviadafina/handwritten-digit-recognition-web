@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CNN 3D Visualizer — Handwritten Digit Recognition</title>
+  <meta name="description" content="Visualisasi interaktif 3D arsitektur CNN LeNet untuk pengenalan angka tulisan tangan.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Three.js dari CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header id="app-header">
+    <h1>CNN <span class="accent">3D</span> Visualizer</h1>
+    <p class="subtitle">LeNet · MNIST · Real-time Activation</p>
+  </header>
+
+  <!-- MAIN LAYOUT -->
+  <main id="app-main">
+
+    <!-- PANEL KIRI: Canvas Gambar -->
+    <section id="draw-panel">
+      <h2>Gambar Angka</h2>
+      <div id="canvas-wrapper">
+        <canvas id="draw-canvas" width="280" height="280"></canvas>
+        <div id="canvas-hint">Gambar angka 0–9 di sini</div>
+      </div>
+      <button id="clear-btn">🗑 Clear</button>
+      <div id="backend-status">⏳ Menghubungkan ke backend...</div>
+    </section>
+
+    <!-- PANEL TENGAH: 3D Visualizer -->
+    <section id="viz-panel">
+      <h2>Arsitektur CNN 3D</h2>
+      <canvas id="three-canvas"></canvas>
+      <p id="viz-hint">🖱 Drag untuk rotasi · Scroll untuk zoom</p>
+    </section>
+
+    <!-- PANEL KANAN: Prediksi -->
+    <section id="predict-panel">
+      <h2>Prediksi</h2>
+      <div id="predicted-digit">?</div>
+      <div id="confidence-title">Confidence per Angka</div>
+      <div id="confidence-bars">
+        <!-- Akan diisi oleh main.js -->
+        <p id="conf-placeholder">Gambar angka untuk melihat prediksi</p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Load JS terakhir (setelah DOM siap) -->
+  <script src="cnn3d.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>
