@@ -107,13 +107,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('canvas-wrapper').classList.remove('is-drawing');
   });
 
-  // --- Tombol Undo ---
-  document.getElementById('undo-btn').addEventListener('click', () => {
-    if (paths.length === 0) return;
-    paths.pop(); // Hapus path terakhir
-    redrawCanvas(ctx, canvas);
-    sendToBackend(canvas);
-  });
 
   // --- Tombol Clear ---
   document.getElementById('clear-btn').addEventListener('click', () => {
@@ -131,10 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- Keyboard Shortcuts ---
   document.addEventListener('keydown', (e) => {
-    if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
-      e.preventDefault();
-      document.getElementById('undo-btn').click();
-    } else if (e.key === 'Delete' || e.key === 'Backspace') {
+    if (e.key === 'Delete' || e.key === 'Backspace') {
       document.getElementById('clear-btn').click();
     }
   });

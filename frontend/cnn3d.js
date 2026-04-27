@@ -236,15 +236,15 @@ class CNNVisualizer {
     cv.width = 256; cv.height = 64;
     const ctx = cv.getContext('2d');
     ctx.clearRect(0, 0, 256, 64);
-    ctx.fillStyle = 'rgba(210,219,235,0.8)';
-    ctx.font = 'bold 26px Arial';
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 34px Arial';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(text, 128, 32);
     const mat = new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(cv), transparent: true });
     const sp  = new THREE.Sprite(mat);
     sp.position.set(x, y, z);
-    sp.scale.set(scale * 2.5, scale * 0.65, 1);
+    sp.scale.set(scale * 3.2, scale * 0.85, 1);
     this.scene.add(sp);
   }
 
