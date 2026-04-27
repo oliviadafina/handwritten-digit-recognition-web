@@ -20,7 +20,7 @@ class CNNVisualizer {
 
     // --- Renderer ---
     this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true });
-    this.renderer.setSize(w, h);
+    this.renderer.setSize(w, h, false);
     this.renderer.setPixelRatio(window.devicePixelRatio);
 
     // --- OrbitControls ---
@@ -308,13 +308,11 @@ class CNNVisualizer {
   // Resize & Animation Loop
   // =============================================
   _onResize() {
-    const panel = document.getElementById('viz-panel');
-    if (!panel) return;
-    const w = this.canvas.clientWidth;
-    const h = this.canvas.clientHeight;
+    const w = this.canvas.clientWidth || 1;
+    const h = this.canvas.clientHeight || 1;
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
-    this.renderer.setSize(w, h);
+    this.renderer.setSize(w, h, false);
   }
 
   _animate() {

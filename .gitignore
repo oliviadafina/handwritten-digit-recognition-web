@@ -1,0 +1,8 @@
+.agents
+.claude
+.vscode
+skills-lock.json
+__pycache__/
+venv/
+backend/venv/
+*.pyc

@@ -8,6 +8,10 @@ let isDrawing = false;
 let debounceTimer = null;
 let visualizer = null;
 
+// History drawing untuk Undo
+let paths = [];
+let currentPath = [];
+
 // Jalankan setelah semua HTML dimuat
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -24,7 +28,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- Event Mouse ---
   canvas.addEventListener('mousedown', (e) => {
     isDrawing = true;
+    document.getElementById('canvas-wrapper').classList.add('is-drawing');
     const pos = getPos(canvas, e);
+    currentPath = [pos];
+    paths.push(currentPath);
+    
     ctx.beginPath();
     ctx.moveTo(pos.x, pos.y);
   });
@@ -32,10 +40,16 @@ document.addEventListener('DOMContentLoaded', () => {
   canvas.addEventListener('mousemove', (e) => {
     if (!isDrawing) return;
     const pos = getPos(canvas, e);
+    currentPath.push(pos);
+    
+    // Smooth drawing dengan shadow/glow
     ctx.lineWidth = 18;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    ctx.strokeStyle = 'white';
+    ctx.strokeStyle = '#ffffff';
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = 'rgba(255, 255, 255, 0.4)';
+    
     ctx.lineTo(pos.x, pos.y);
     ctx.stroke();
 
@@ -46,18 +60,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
   canvas.addEventListener('mouseup', () => {
     isDrawing = false;
+    document.getElementById('canvas-wrapper').classList.remove('is-drawing');
     sendToBackend(canvas);
   });
 
   canvas.addEventListener('mouseleave', () => {
     isDrawing = false;
+    document.getElementById('canvas-wrapper').classList.remove('is-drawing');
   });
 
   // --- Event Touch (tablet/mobile) ---
   canvas.addEventListener('touchstart', (e) => {
     e.preventDefault();
     isDrawing = true;
+    document.getElementById('canvas-wrapper').classList.add('is-drawing');
     const pos = getTouchPos(canvas, e);
+    currentPath = [pos];
+    paths.push(currentPath);
+    
     ctx.beginPath();
     ctx.moveTo(pos.x, pos.y);
   }, { passive: false });
@@ -66,10 +86,15 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
     if (!isDrawing) return;
     const pos = getTouchPos(canvas, e);
+    currentPath.push(pos);
+    
     ctx.lineWidth = 18;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    ctx.strokeStyle = 'white';
+    ctx.strokeStyle = '#ffffff';
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = 'rgba(255, 255, 255, 0.4)';
+    
     ctx.lineTo(pos.x, pos.y);
     ctx.stroke();
 
@@ -79,18 +104,49 @@ document.addEventListener('DOMContentLoaded', () => {
 
   canvas.addEventListener('touchend', () => {
     isDrawing = false;
+    document.getElementById('canvas-wrapper').classList.remove('is-drawing');
+  });
+
+  // --- Tombol Undo ---
+  document.getElementById('undo-btn').addEventListener('click', () => {
+    if (paths.length === 0) return;
+    paths.pop(); // Hapus path terakhir
+    redrawCanvas(ctx, canvas);
+    sendToBackend(canvas);
   });
 
   // --- Tombol Clear ---
   document.getElementById('clear-btn').addEventListener('click', () => {
+    paths = [];
     resetCanvas(ctx, canvas);
     document.getElementById('predicted-digit').textContent = '?';
+    document.getElementById('predicted-digit').style.color = '';
     document.getElementById('confidence-bars').innerHTML =
       '<p id="conf-placeholder">Gambar angka untuk melihat prediksi</p>';
+    if (visualizer && visualizer.layers.input) {
+        // Reset 3D visualizer
+        visualizer.updateInputLayer(Array(28).fill(Array(28).fill(0)));
+    }
+  });
+
+  // --- Keyboard Shortcuts ---
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+      e.preventDefault();
+      document.getElementById('undo-btn').click();
+    } else if (e.key === 'Delete' || e.key === 'Backspace') {
+      document.getElementById('clear-btn').click();
+    }
   });
 
   // --- Cek koneksi backend saat startup ---
   checkBackend();
+
+  // --- Trigger entrance animations ---
+  document.querySelectorAll('#draw-panel, #viz-panel, #predict-panel').forEach((el, i) => {
+    el.style.setProperty('--entrance-delay', `${i * 120}ms`);
+    el.classList.add('panel-enter');
+  });
 });
 
 // ========================================
@@ -98,8 +154,28 @@ document.addEventListener('DOMContentLoaded', () => {
 // ========================================
 
 function resetCanvas(ctx, canvas) {
-  ctx.fillStyle = '#000';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  // Clear dengan transparan agar CSS background terlihat
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function redrawCanvas(ctx, canvas) {
+  resetCanvas(ctx, canvas);
+  ctx.lineWidth = 18;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = '#ffffff';
+  ctx.shadowBlur = 8;
+  ctx.shadowColor = 'rgba(255, 255, 255, 0.4)';
+  
+  paths.forEach(path => {
+    if (path.length === 0) return;
+    ctx.beginPath();
+    ctx.moveTo(path[0].x, path[0].y);
+    for (let i = 1; i < path.length; i++) {
+      ctx.lineTo(path[i].x, path[i].y);
+    }
+    ctx.stroke();
+  });
 }
 
 function getPos(canvas, e) {
@@ -124,10 +200,10 @@ async function checkBackend() {
   try {
     const res = await fetch(`${BACKEND_URL}/`);
     const data = await res.json();
-    statusEl.textContent = '✅ Backend terhubung';
+    statusEl.querySelector('.status-text').textContent = 'Backend terhubung';
     statusEl.className = 'ok';
   } catch {
-    statusEl.textContent = '❌ Backend tidak terhubung! Jalankan python app.py';
+    statusEl.querySelector('.status-text').textContent = 'Backend tidak terhubung';
     statusEl.className = 'error';
   }
 }
@@ -142,6 +218,10 @@ async function sendToBackend(drawCanvas) {
   smallCanvas.width = 28;
   smallCanvas.height = 28;
   const smallCtx = smallCanvas.getContext('2d');
+  
+  // Karena drawCanvas transparan, isi dengan hitam dulu
+  smallCtx.fillStyle = '#000000';
+  smallCtx.fillRect(0, 0, 28, 28);
   smallCtx.drawImage(drawCanvas, 0, 0, 28, 28);
 
   // Update input layer di 3D visualizer
@@ -193,6 +273,11 @@ function updatePredictionPanel(data) {
   // Tampilkan angka prediksi besar
   document.getElementById('predicted-digit').textContent = data.prediction;
 
+  // Color the digit based on confidence
+  const maxConf = Math.max(...data.confidence);
+  const digitEl = document.getElementById('predicted-digit');
+  digitEl.style.color = maxConf > 0.8 ? 'var(--amber)' : 'var(--accent)';
+
   // Buat confidence bar untuk tiap angka 0-9
   const barsEl = document.getElementById('confidence-bars');
   barsEl.innerHTML = '';
@@ -203,6 +288,7 @@ function updatePredictionPanel(data) {
 
     const row = document.createElement('div');
     row.className = 'conf-row' + (isMax ? ' conf-max' : '');
+    row.style.setProperty('--i', i);
 
     row.innerHTML = `
       <span class="conf-label">${i}</span>
