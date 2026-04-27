@@ -8,6 +8,10 @@ let isDrawing = false;
 let debounceTimer = null;
 let visualizer = null;
 
+// History drawing untuk Undo
+let paths = [];
+let currentPath = [];
+
 // Jalankan setelah semua HTML dimuat
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -26,6 +30,9 @@ document.addEventListener('DOMContentLoaded', () => {
     isDrawing = true;
     document.getElementById('canvas-wrapper').classList.add('is-drawing');
     const pos = getPos(canvas, e);
+    currentPath = [pos];
+    paths.push(currentPath);
+    
     ctx.beginPath();
     ctx.moveTo(pos.x, pos.y);
   });
@@ -33,10 +40,16 @@ document.addEventListener('DOMContentLoaded', () => {
   canvas.addEventListener('mousemove', (e) => {
     if (!isDrawing) return;
     const pos = getPos(canvas, e);
+    currentPath.push(pos);
+    
+    // Smooth drawing dengan shadow/glow
     ctx.lineWidth = 18;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    ctx.strokeStyle = 'white';
+    ctx.strokeStyle = '#ffffff';
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = 'rgba(255, 255, 255, 0.4)';
+    
     ctx.lineTo(pos.x, pos.y);
     ctx.stroke();
 
@@ -62,6 +75,9 @@ document.addEventListener('DOMContentLoaded', () => {
     isDrawing = true;
     document.getElementById('canvas-wrapper').classList.add('is-drawing');
     const pos = getTouchPos(canvas, e);
+    currentPath = [pos];
+    paths.push(currentPath);
+    
     ctx.beginPath();
     ctx.moveTo(pos.x, pos.y);
   }, { passive: false });
@@ -70,10 +86,15 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
     if (!isDrawing) return;
     const pos = getTouchPos(canvas, e);
+    currentPath.push(pos);
+    
     ctx.lineWidth = 18;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    ctx.strokeStyle = 'white';
+    ctx.strokeStyle = '#ffffff';
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = 'rgba(255, 255, 255, 0.4)';
+    
     ctx.lineTo(pos.x, pos.y);
     ctx.stroke();
 
@@ -86,13 +107,36 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('canvas-wrapper').classList.remove('is-drawing');
   });
 
+  // --- Tombol Undo ---
+  document.getElementById('undo-btn').addEventListener('click', () => {
+    if (paths.length === 0) return;
+    paths.pop(); // Hapus path terakhir
+    redrawCanvas(ctx, canvas);
+    sendToBackend(canvas);
+  });
+
   // --- Tombol Clear ---
   document.getElementById('clear-btn').addEventListener('click', () => {
+    paths = [];
     resetCanvas(ctx, canvas);
     document.getElementById('predicted-digit').textContent = '?';
     document.getElementById('predicted-digit').style.color = '';
     document.getElementById('confidence-bars').innerHTML =
       '<p id="conf-placeholder">Gambar angka untuk melihat prediksi</p>';
+    if (visualizer && visualizer.layers.input) {
+        // Reset 3D visualizer
+        visualizer.updateInputLayer(Array(28).fill(Array(28).fill(0)));
+    }
+  });
+
+  // --- Keyboard Shortcuts ---
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+      e.preventDefault();
+      document.getElementById('undo-btn').click();
+    } else if (e.key === 'Delete' || e.key === 'Backspace') {
+      document.getElementById('clear-btn').click();
+    }
   });
 
   // --- Cek koneksi backend saat startup ---
@@ -110,8 +154,28 @@ document.addEventListener('DOMContentLoaded', () => {
 // ========================================
 
 function resetCanvas(ctx, canvas) {
-  ctx.fillStyle = '#0a0a0f';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  // Clear dengan transparan agar CSS background terlihat
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function redrawCanvas(ctx, canvas) {
+  resetCanvas(ctx, canvas);
+  ctx.lineWidth = 18;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = '#ffffff';
+  ctx.shadowBlur = 8;
+  ctx.shadowColor = 'rgba(255, 255, 255, 0.4)';
+  
+  paths.forEach(path => {
+    if (path.length === 0) return;
+    ctx.beginPath();
+    ctx.moveTo(path[0].x, path[0].y);
+    for (let i = 1; i < path.length; i++) {
+      ctx.lineTo(path[i].x, path[i].y);
+    }
+    ctx.stroke();
+  });
 }
 
 function getPos(canvas, e) {
@@ -154,6 +218,10 @@ async function sendToBackend(drawCanvas) {
   smallCanvas.width = 28;
   smallCanvas.height = 28;
   const smallCtx = smallCanvas.getContext('2d');
+  
+  // Karena drawCanvas transparan, isi dengan hitam dulu
+  smallCtx.fillStyle = '#000000';
+  smallCtx.fillRect(0, 0, 28, 28);
   smallCtx.drawImage(drawCanvas, 0, 0, 28, 28);
 
   // Update input layer di 3D visualizer
